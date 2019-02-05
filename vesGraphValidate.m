@@ -27,7 +27,7 @@ function varargout = vesGraphValidate(varargin)
 
 
 
-% Last Modified by GUIDE v2.5 22-Jan-2019 12:41:57
+% Last Modified by GUIDE v2.5 01-Feb-2019 09:42:41
 
 
 
@@ -4285,7 +4285,7 @@ if get(handles.checkbox_verifySegments,'Value') && isfield(Data.Graph,'segInfo')
     else
         u = 1;
         Data.Graph.segno = u;
-        Data.Graph.verifiedSegments = zeros(size(segPos,1),1);
+%         Data.Graph.verifiedSegments = zeros(size(segPos,1),1);
     end
     
     Data.Graph.segno = u;
@@ -4589,7 +4589,8 @@ if isfield(Data.Graph,'verifiedSegments')
         else
             endnode = 0;
         end
-        if ~Data.Graph.verifiedSegments(u)
+        if 1 
+%             ~Data.Graph.verifiedSegments(u)
             if endnode == 1
                 idx_end{1}(iall) = u;
                 iall = iall+1;
@@ -4640,6 +4641,18 @@ if isfield(Data.Graph,'verifiedSegments')
         end
           
     end
+    
+    % number of bifurcations at end node
+    endnodes1 = unique(Data.Graph.segInfo.segEndNodes(:,1));
+    endnodes2 = unique(Data.Graph.segInfo.segEndNodes(:,2));
+    unique_endnodes = unique([endnodes1;endnodes2]);
+    Data.Graph.endNodes = zeros(size(unique_endnodes));
+    nB = zeros(size(unique_endnodes));
+    for ii=1:length(unique_endnodes)
+        nB(ii) = length(find(Data.Graph.segInfo.segEndNodes(:)==unique_endnodes(ii))); 
+        Data.Graph.endNodes(ii) = unique_endnodes(ii);
+    end
+    Data.Graph.nB = nB;
     idx = find(Data.Graph.verifiedSegments == 0);
     Data.Graph.segInfo.unverifiedIdx = idx;
     Data.Graph.segInfo.unverifiedIdx3 = idx3;
@@ -5541,3 +5554,10 @@ set(handles.radiobutton_YZview,'value',1);
 set(handles.radiobutton_XZview,'value',0);
 set(handles.radiobutton_XYview,'value',0);
 draw(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function AllSegments_nBG3_Callback(hObject, eventdata, handles)
+% hObject    handle to AllSegments_nBG3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
