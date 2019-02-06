@@ -274,94 +274,109 @@ if get(handles.checkbox_verifySegments,'Value') && (isfield(Data,'Graph') && isf
     set(handles.text_segNumber,'String','segment');
     set(handles.edit_segmentNumber,'String',num2str(Data.Graph.segno));
     set(handles.text_segNumber2,'String',[' of ' num2str(size(Data.Graph.segInfo.segPos,1))]);
-    if  strcmp(get(handles.Groups_All,'checked'),'off')
-        if strcmp(get(handles.verification_allSegments,'checked'),'on')
-            idx = find(Data.Graph.segInfo.segmentsGrpOrder(:,1) == Data.Graph.segno);
-            group_no = Data.Graph.segInfo.segmentsGrpOrder(idx,2);
-            set(handles.text_segNumber,'String','segment');
-            set(handles.edit_segmentNumber,'String',num2str(Data.Graph.segno));
-            set(handles.text_segNumber2,'String',[' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (Group-'  num2str(group_no) ')']);
-        elseif strcmp(get(handles.unverified,'checked'),'on')
-            idx = find(Data.Graph.segInfo.segmentsUnverifiedGrpOrder(:,1) == Data.Graph.segno);
-            group_no = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(idx,2);
-            set(handles.text_segNumber,'String','segment');
-            set(handles.edit_segmentNumber,'String',num2str(Data.Graph.segno));
-            set(handles.text_segNumber2,'String',[' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (Group-'  num2str(group_no) ' & ' num2str(idx) ' of ' num2str(length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder)) ')']);
+    if strcmp(get(handles.AllSegments_nBG3,'checked'),'on')
+        if ~isfield(Data.Graph,'nodeno')
+            Data.Graph.nodeno = 1;
         end
+        nBG3_idx = find(Data.Graph.nB>3);
+        nBG3 = Data.Graph.endNodes(nBG3_idx);
+        nodeno = nBG3(Data.Graph.nodeno);
+        segs = unique(find(Data.Graph.segInfo.segEndNodes(:,1) == nodeno | Data.Graph.segInfo.segEndNodes(:,2) == nodeno));
+        segslength = Data.Graph.segInfo.segLen(segs);
+        [~,idx] = min(segslength);
+%         [~,idx] = min(abs(nBG3 -Data.Graph.segno));
+        Data.Graph.segno = segs(idx(1));
+        seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(Data.Graph.nodeno) ' of ' num2str(length(nBG3)) ')'];
     else
-        if strcmp(get(handles.AllSegments_All,'checked'),'on')
-            if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.A_idx_end{1,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{1,1},2)) ')'];
-                str2 = num2str(Data.Graph.segno);
-                str3 = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{1,1},2)) ')'];
-            else
-                %                 set(handles.text_segNumber,'String',['segment ' num2str(Data.Graph.segno) ' of ' num2str(size(Data.Graph.segInfo.segPos,1))]);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1))];
+        if  strcmp(get(handles.Groups_All,'checked'),'off')
+            if strcmp(get(handles.verification_allSegments,'checked'),'on')
+                idx = find(Data.Graph.segInfo.segmentsGrpOrder(:,1) == Data.Graph.segno);
+                group_no = Data.Graph.segInfo.segmentsGrpOrder(idx,2);
+                set(handles.text_segNumber,'String','segment');
+                set(handles.edit_segmentNumber,'String',num2str(Data.Graph.segno));
+                set(handles.text_segNumber2,'String',[' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (Group-'  num2str(group_no) ')']);
+            elseif strcmp(get(handles.unverified,'checked'),'on')
+                idx = find(Data.Graph.segInfo.segmentsUnverifiedGrpOrder(:,1) == Data.Graph.segno);
+                group_no = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(idx,2);
+                set(handles.text_segNumber,'String','segment');
+                set(handles.edit_segmentNumber,'String',num2str(Data.Graph.segno));
+                set(handles.text_segNumber2,'String',[' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (Group-'  num2str(group_no) ' & ' num2str(idx) ' of ' num2str(length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder)) ')']);
             end
-        elseif strcmp(get(handles.AllSegments_lessthan3nodes,'checked'),'on')
-            if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.A_idx_end{2,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{2,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.A_Idx3 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx3,1)) ')'];
-            end
-        elseif strcmp(get(handles.AllSegments_lessthan5nodes,'checked'),'on')
-            if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.A_idx_end{3,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{3,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.A_Idx5 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx5,1)) ')'];
-            end
-        elseif strcmp(get(handles.AllSegments_lessthan10nodes,'checked'),'on')
-            if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.A_idx_end{4,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{4,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.A_Idx10 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx10,1)) ')'];
-            end
-        elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
-            if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.idx_end{2,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{2,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.unverifiedIdx3 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx3,1)) ')'];
-            end
-        elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
-            if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.idx_end{2,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{2,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.unverifiedIdx3 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx3,1)) ')'];
-            end
-        elseif strcmp(get(handles.unverifedlessthan5Nodes,'checked'),'on')
-            if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.idx_end{3,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{3,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.unverifiedIdx5 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx5,1)) ')'];
-            end
-        elseif strcmp(get(handles.unverifedlessthan10Nodes,'checked'),'on')
-            if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.idx_end{4,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{4,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.unverifiedIdx10 == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx10,1)) ')'];
-            end
-        elseif strcmp(get(handles.unverifedAllNodes,'checked'),'on')
-            if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
-                idx = find(Data.Graph.segInfo.idx_end{1,1} == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{1,1},2)) ')'];
-            else
-                idx = find(Data.Graph.segInfo.unverifiedIdx == Data.Graph.segno);
-                seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx,1)) ')'];
+        else
+            if strcmp(get(handles.AllSegments_All,'checked'),'on')
+                if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.A_idx_end{1,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{1,1},2)) ')'];
+                    str2 = num2str(Data.Graph.segno);
+                    str3 = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{1,1},2)) ')'];
+                else
+                    %                 set(handles.text_segNumber,'String',['segment ' num2str(Data.Graph.segno) ' of ' num2str(size(Data.Graph.segInfo.segPos,1))]);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1))];
+                end
+            elseif strcmp(get(handles.AllSegments_lessthan3nodes,'checked'),'on')
+                if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.A_idx_end{2,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{2,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.A_Idx3 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx3,1)) ')'];
+                end
+            elseif strcmp(get(handles.AllSegments_lessthan5nodes,'checked'),'on')
+                if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.A_idx_end{3,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{3,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.A_Idx5 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx5,1)) ')'];
+                end
+            elseif strcmp(get(handles.AllSegments_lessthan10nodes,'checked'),'on')
+                if strcmp(get(handles.AllSegments_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.A_idx_end{4,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_idx_end{4,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.A_Idx10 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.A_Idx10,1)) ')'];
+                end
+            elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
+                if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.idx_end{2,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{2,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.unverifiedIdx3 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx3,1)) ')'];
+                end
+            elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
+                if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.idx_end{2,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{2,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.unverifiedIdx3 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx3,1)) ')'];
+                end
+            elseif strcmp(get(handles.unverifedlessthan5Nodes,'checked'),'on')
+                if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.idx_end{3,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{3,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.unverifiedIdx5 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx5,1)) ')'];
+                end
+            elseif strcmp(get(handles.unverifedlessthan10Nodes,'checked'),'on')
+                if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.idx_end{4,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{4,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.unverifiedIdx10 == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx10,1)) ')'];
+                end
+            elseif strcmp(get(handles.unverifedAllNodes,'checked'),'on')
+                if strcmp(get(handles.Unverified_endSegments,'Checked'),'on')
+                    idx = find(Data.Graph.segInfo.idx_end{1,1} == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.idx_end{1,1},2)) ')'];
+                else
+                    idx = find(Data.Graph.segInfo.unverifiedIdx == Data.Graph.segno);
+                    seginfo_text = [' of ' num2str(size(Data.Graph.segInfo.segPos,1)) ' (' num2str(idx) ' of ' num2str(size(Data.Graph.segInfo.unverifiedIdx,1)) ')'];
+                end
             end
         end
     end
@@ -2513,7 +2528,7 @@ function File_savedata_Callback(hObject, eventdata, handles)
 
 
 global Data
-if isfield(Data,'angioF')|| isfield(Data,'angioT') || isfield(Data,'segangio') || isfield(Data,'angioVolume')
+% if isfield(Data,'angioF')|| isfield(Data,'angioT') || isfield(Data,'segangio') || isfield(Data,'angioVolume')
     if isfield(Data,'rawdatapath')
         Output.rawdatapath = Data.rawdatapath;
     end
@@ -2546,7 +2561,7 @@ if isfield(Data,'angioF')|| isfield(Data,'angioT') || isfield(Data,'segangio') |
     save([PathName FileName],'Output');
     waitbar(1);
     close(h);
-end
+% end
 
 
 
@@ -3646,7 +3661,22 @@ elseif isfield(Data.Graph,'segInfo')
         u = Data.Graph.segno;
     else
         u = 1;
-    end
+        end
+     if strcmp(get(handles.AllSegments_nBG3,'checked'),'on')
+        if ~isfield(Data.Graph,'nodeno')
+            Data.Graph.nodeno = 1;
+        end
+        nBG3_idx = find(Data.Graph.nB>3);
+        nBG3 = Data.Graph.endNodes(nBG3_idx);
+        Data.Graph.nodeno = max(Data.Graph.nodeno-1,1);
+        nodeno = nBG3(Data.Graph.nodeno);
+        segs = unique(find(Data.Graph.segInfo.segEndNodes(:,1) == nodeno | Data.Graph.segInfo.segEndNodes(:,2) == nodeno));
+        segslength = Data.Graph.segInfo.segLen(segs);
+        [~,idx] = min(segslength);
+        %         [~,idx] = min(abs(nBG3 -Data.Graph.segno));
+        Data.Graph.segno = segs(idx(1));
+        u = Data.Graph.segno;
+    else
     if  strcmp(get(handles.Groups_All,'checked'),'off')
         if strcmp(get(handles.verification_allSegments,'checked'),'on')
 %             [~,u] = min(abs(Data.Graph.segInfo.segmentsGrpOrder-u));
@@ -3778,6 +3808,7 @@ elseif isfield(Data.Graph,'segInfo')
             end
         end
     end
+     end
 %     if isfield(Data.Graph.segInfo, 'V')
 %         if Data.Graph.segInfo.V == 0
 %             if isfield(Data.Graph,'segnoVAll')
@@ -3939,10 +3970,10 @@ if get(handles.checkbox_verifyNotes,'Value')
     else
         currentNote = 1;
     end
-     Data.currentNote = currentNote;
-     checkbox_verifyNotes_Callback(hObject, eventdata, handles)
+    Data.currentNote = currentNote;
+    checkbox_verifyNotes_Callback(hObject, eventdata, handles)
 elseif isfield(Data.Graph,'segInfo')
- nodeSegN = Data.Graph.segInfo.nodeSegN;
+    nodeSegN = Data.Graph.segInfo.nodeSegN;
     ZMIP = str2double(get(handles.edit_ZMIP,'String'));
     XMIP = str2double(get(handles.edit_XwidthZoom,'String'));
     YMIP = str2double(get(handles.edit_YwidthZoom,'String'));
@@ -3953,202 +3984,218 @@ elseif isfield(Data.Graph,'segInfo')
     else
         u = 1;
     end
-    if  strcmp(get(handles.Groups_All,'checked'),'off')
-        if strcmp(get(handles.verification_allSegments,'checked'),'on')
-%             [~,u] = min(abs(Data.Graph.segInfo.segmentsGrpOrder-u));
-              L = length(Data.Graph.segInfo.segmentsGrpOrder);  
-            if strcmp(get(handles.Group_groupWithMostSegments,'checked'),'on')
-%                 u = Data.Graph.segnoMS;
-%                 u = min(u+1,length(Data.Graph.segInfo.segmentsGrpOrder));
-                Data.Graph.segnoMS = min(Data.Graph.segnoMS+1,length(Data.Graph.segInfo.segmentsGrpOrder));
-                u = Data.Graph.segInfo.segmentsGrpOrder(Data.Graph.segnoMS);               
-            elseif strcmp(get(handles.Groups_groupswithleastsegments,'checked'),'on')
-                Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
-                u = Data.Graph.segnoLS;
-                u = max(L-u,1);
-                u = Data.Graph.segInfo.segmentsGrpOrder(u);
-%                 Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
-            end
-        elseif strcmp(get(handles.unverified,'checked'),'on')
-             [~,u] = min(abs(Data.Graph.segInfo.segmentsGrpOrder-u));
-             L = length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder);
-            if strcmp(get(handles.Group_groupWithMostSegments,'checked'),'on')
-%                 u = Data.Graph.segnoMS;
-%                 u = min(u+1,length(Data.Graph.segInfo.segmentsGrpOrder));
-                Data.Graph.segnoMS = min(Data.Graph.segnoMS+1,length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder));
-                u = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(Data.Graph.segnoMS);   
-            elseif strcmp(get(handles.Groups_groupswithleastsegments,'checked'),'on')
-                Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
-                u = Data.Graph.segnoLS;
-                u = max(L-u,1);
-                u = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(u);  
-            end
+    if strcmp(get(handles.AllSegments_nBG3,'checked'),'on')
+        if ~isfield(Data.Graph,'nodeno')
+            Data.Graph.nodeno = 1;
         end
+        nBG3_idx = find(Data.Graph.nB>3);
+        nBG3 = Data.Graph.endNodes(nBG3_idx);
+        Data.Graph.nodeno = min(Data.Graph.nodeno+1,length(nBG3));
+        nodeno = nBG3(Data.Graph.nodeno);
+        segs = unique(find(Data.Graph.segInfo.segEndNodes(:,1) == nodeno | Data.Graph.segInfo.segEndNodes(:,2) == nodeno));
+        segslength = Data.Graph.segInfo.segLen(segs);
+        [~,idx] = min(segslength);
+        %         [~,idx] = min(abs(nBG3 -Data.Graph.segno));
+        Data.Graph.segno = segs(idx(1));
+        u = Data.Graph.segno;
     else
-        if strcmp(get(handles.verification_allSegments,'checked'),'on')
-            if strcmp(get(handles.AllSegments_All,'checked'),'on')
-                if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
-                    u = min(u+1,length(Data.Graph.segInfo.segLen));
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{1}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_idx_end{1}));
-                    u = Data.Graph.segInfo.A_idx_end{1}(u);
+        if  strcmp(get(handles.Groups_All,'checked'),'off')
+            if strcmp(get(handles.verification_allSegments,'checked'),'on')
+                %             [~,u] = min(abs(Data.Graph.segInfo.segmentsGrpOrder-u));
+                L = length(Data.Graph.segInfo.segmentsGrpOrder);
+                if strcmp(get(handles.Group_groupWithMostSegments,'checked'),'on')
+                    %                 u = Data.Graph.segnoMS;
+                    %                 u = min(u+1,length(Data.Graph.segInfo.segmentsGrpOrder));
+                    Data.Graph.segnoMS = min(Data.Graph.segnoMS+1,length(Data.Graph.segInfo.segmentsGrpOrder));
+                    u = Data.Graph.segInfo.segmentsGrpOrder(Data.Graph.segnoMS);
+                elseif strcmp(get(handles.Groups_groupswithleastsegments,'checked'),'on')
+                    Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
+                    u = Data.Graph.segnoLS;
+                    u = max(L-u,1);
+                    u = Data.Graph.segInfo.segmentsGrpOrder(u);
+                    %                 Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
                 end
-            elseif strcmp(get(handles.AllSegments_lessthan3nodes,'checked'),'on')
-                if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.A_Idx3-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_Idx3));
-                    u = Data.Graph.segInfo.A_Idx3(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{2}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_idx_end{2}));
-                    u = Data.Graph.segInfo.A_idx_end{2}(u);
-                end
-            elseif strcmp(get(handles.AllSegments_lessthan5nodes,'checked'),'on')
-                 if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.A_Idx5-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_Idx5));
-                    u = Data.Graph.segInfo.A_Idx5(u);
-                 else
-                    [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{3}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_idx_end{3}));
-                    u = Data.Graph.segInfo.A_idx_end{3}(u);
-                 end
-            elseif strcmp(get(handles.AllSegments_lessthan10nodes,'checked'),'on')
-                if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.A_Idx10-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_Idx10));
-                    u = Data.Graph.segInfo.A_Idx10(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{4}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.A_idx_end{4}));
-                    u = Data.Graph.segInfo.A_idx_end{4}(u);
+            elseif strcmp(get(handles.unverified,'checked'),'on')
+                [~,u] = min(abs(Data.Graph.segInfo.segmentsGrpOrder-u));
+                L = length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder);
+                if strcmp(get(handles.Group_groupWithMostSegments,'checked'),'on')
+                    %                 u = Data.Graph.segnoMS;
+                    %                 u = min(u+1,length(Data.Graph.segInfo.segmentsGrpOrder));
+                    Data.Graph.segnoMS = min(Data.Graph.segnoMS+1,length(Data.Graph.segInfo.segmentsUnverifiedGrpOrder));
+                    u = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(Data.Graph.segnoMS);
+                elseif strcmp(get(handles.Groups_groupswithleastsegments,'checked'),'on')
+                    Data.Graph.segnoLS = min(Data.Graph.segnoLS+1,L);
+                    u = Data.Graph.segnoLS;
+                    u = max(L-u,1);
+                    u = Data.Graph.segInfo.segmentsUnverifiedGrpOrder(u);
                 end
             end
-        elseif strcmp(get(handles.unverified,'checked'),'on')
-            if strcmp(get(handles.unverifedAllNodes,'checked'),'on')
-                if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx-u));
-                    u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx));
-                    u = Data.Graph.segInfo.unverifiedIdx(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.idx_end{1}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.idx_end{1}));
-                    u = Data.Graph.segInfo.idx_end{1}(u);
+        else
+            if strcmp(get(handles.verification_allSegments,'checked'),'on')
+                if strcmp(get(handles.AllSegments_All,'checked'),'on')
+                    if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
+                        u = min(u+1,length(Data.Graph.segInfo.segLen));
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{1}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_idx_end{1}));
+                        u = Data.Graph.segInfo.A_idx_end{1}(u);
+                    end
+                elseif strcmp(get(handles.AllSegments_lessthan3nodes,'checked'),'on')
+                    if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.A_Idx3-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_Idx3));
+                        u = Data.Graph.segInfo.A_Idx3(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{2}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_idx_end{2}));
+                        u = Data.Graph.segInfo.A_idx_end{2}(u);
+                    end
+                elseif strcmp(get(handles.AllSegments_lessthan5nodes,'checked'),'on')
+                    if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.A_Idx5-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_Idx5));
+                        u = Data.Graph.segInfo.A_Idx5(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{3}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_idx_end{3}));
+                        u = Data.Graph.segInfo.A_idx_end{3}(u);
+                    end
+                elseif strcmp(get(handles.AllSegments_lessthan10nodes,'checked'),'on')
+                    if strcmp(get(handles.AllSegments_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.A_Idx10-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_Idx10));
+                        u = Data.Graph.segInfo.A_Idx10(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.A_idx_end{4}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.A_idx_end{4}));
+                        u = Data.Graph.segInfo.A_idx_end{4}(u);
+                    end
                 end
-            elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
-                if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx3-u));
-                    u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx3));
-                    u = Data.Graph.segInfo.unverifiedIdx3(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.idx_end{2}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.idx_end{2}));
-                    u = Data.Graph.segInfo.idx_end{2}(u);
-                end
-            elseif strcmp(get(handles.unverifedlessthan5Nodes,'checked'),'on')
-                if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx5-u));
-                    u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx5));
-                    u = Data.Graph.segInfo.unverifiedIdx5(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.idx_end{3}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.idx_end{3}));
-                    u = Data.Graph.segInfo.idx_end{3}(u);
-                end
-            elseif strcmp(get(handles.unverifedlessthan10Nodes,'checked'),'on')
-                if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
-                    [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx10-u));
-                    u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx10));
-                    u = Data.Graph.segInfo.unverifiedIdx10(u);
-                else
-                    [~,u] = min(abs(Data.Graph.segInfo.idx_end{4}-u));
-                    u = min(u+1,length(Data.Graph.segInfo.idx_end{4}));
-                    u = Data.Graph.segInfo.idx_end{4}(u);
+            elseif strcmp(get(handles.unverified,'checked'),'on')
+                if strcmp(get(handles.unverifedAllNodes,'checked'),'on')
+                    if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx-u));
+                        u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx));
+                        u = Data.Graph.segInfo.unverifiedIdx(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.idx_end{1}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.idx_end{1}));
+                        u = Data.Graph.segInfo.idx_end{1}(u);
+                    end
+                elseif strcmp(get(handles.unverifedlessthan3Nodes,'checked'),'on')
+                    if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx3-u));
+                        u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx3));
+                        u = Data.Graph.segInfo.unverifiedIdx3(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.idx_end{2}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.idx_end{2}));
+                        u = Data.Graph.segInfo.idx_end{2}(u);
+                    end
+                elseif strcmp(get(handles.unverifedlessthan5Nodes,'checked'),'on')
+                    if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx5-u));
+                        u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx5));
+                        u = Data.Graph.segInfo.unverifiedIdx5(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.idx_end{3}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.idx_end{3}));
+                        u = Data.Graph.segInfo.idx_end{3}(u);
+                    end
+                elseif strcmp(get(handles.unverifedlessthan10Nodes,'checked'),'on')
+                    if strcmp(get(handles.Unverified_endSegments,'checked'),'off')
+                        [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx10-u));
+                        u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx10));
+                        u = Data.Graph.segInfo.unverifiedIdx10(u);
+                    else
+                        [~,u] = min(abs(Data.Graph.segInfo.idx_end{4}-u));
+                        u = min(u+1,length(Data.Graph.segInfo.idx_end{4}));
+                        u = Data.Graph.segInfo.idx_end{4}(u);
+                    end
                 end
             end
         end
     end
-%     if isfield(Data.Graph.segInfo, 'V')
-%         if Data.Graph.segInfo.V == 0
-%             if isfield(Data.Graph,'segnoVAll')
-%                 u = Data.Graph.segnoVAll;
-%                 u = min(u+1,length(Data.Graph.segInfo.segLen));
-%             else
-%                 u = 1;
-%             end 
-%             Data.Graph.segnoVAll = u;
-%         elseif Data.Graph.segInfo.V == 1
-%             if isfield(Data.Graph,'segnoAll')
-%                 if strcmp(checkmark,'off')
-%                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx-Data.Graph.segnoAll));
-%                     
-%                 else
-%                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{1}-Data.Graph.segnoAll));
-%                     u = min(u+1,length(Data.Graph.segInfo.idx_end{1}));
-%                     u = Data.Graph.segInfo.idx_end{1}(u);
-%                 end
-%             else
-%                 u = Data.Graph.segInfo.unverifiedIdx(1);
-%             end 
-%             Data.Graph.segnoAll = u;
-%         elseif Data.Graph.segInfo.V == 3
-%             if isfield(Data.Graph,'segno3')
-%                 if strcmp(checkmark,'off')
-%                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx3-Data.Graph.segno3));
-%                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx3));
-%                     u = Data.Graph.segInfo.unverifiedIdx3(u);
-%                 else
-%                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{2}-Data.Graph.segno3));
-%                     u = min(u+1,length(Data.Graph.segInfo.idx_end{2}));
-%                     u = Data.Graph.segInfo.idx_end{2}(u);
-%                 end
-%             else
-%                 u = Data.Graph.segInfo.unverifiedIdx3(1);
-%             end 
-%             Data.Graph.segno3 = u;
-%         elseif Data.Graph.segInfo.V == 5
-%             if isfield(Data.Graph,'segno5')
-%                 if strcmp(checkmark,'off')
-%                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx5-Data.Graph.segno5));
-%                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx5));
-%                     u = Data.Graph.segInfo.unverifiedIdx5(u);
-%                 else
-%                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{3}-Data.Graph.segno5));
-%                     u = min(u+1,length(Data.Graph.segInfo.idx_end{3}));
-%                     u = Data.Graph.segInfo.idx_end{3}(u);
-%                 end
-%             else
-%                 u = Data.Graph.segInfo.unverifiedIdx5(1);
-%             end 
-%             Data.Graph.segno5 = u;
-%         elseif Data.Graph.segInfo.V == 10
-%             if isfield(Data.Graph,'segno10')
-%                 if strcmp(checkmark,'off')
-%                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx10-Data.Graph.segno10));
-%                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx10));
-%                     u = Data.Graph.segInfo.unverifiedIdx10(u);
-%                 else
-%                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{4}-Data.Graph.segno10));
-%                     u = min(u+1,length(Data.Graph.segInfo.idx_end{4}));
-%                     u = Data.Graph.segInfo.idx_end{4}(u);
-%                 end
-%             else
-%                 u = Data.Graph.segInfo.unverifiedIdx10(1);
-%             end
-%             Data.Graph.segno10 = u;
-%         end
-%             
-%     else
-%         if isfield(Data.Graph,'segnoVAll')
-%             u = Data.Graph.segnoVAll;
-%             u = min(u+1,length(Data.Graph.segInfo.segLen));
-%             Data.Graph.segnoVAll = u;
-%         else
-%             u = 1;
-%             Data.Graph.segnoVAll = u;
-%         end
-%     end
+    %     if isfield(Data.Graph.segInfo, 'V')
+    %         if Data.Graph.segInfo.V == 0
+    %             if isfield(Data.Graph,'segnoVAll')
+    %                 u = Data.Graph.segnoVAll;
+    %                 u = min(u+1,length(Data.Graph.segInfo.segLen));
+    %             else
+    %                 u = 1;
+    %             end
+    %             Data.Graph.segnoVAll = u;
+    %         elseif Data.Graph.segInfo.V == 1
+    %             if isfield(Data.Graph,'segnoAll')
+    %                 if strcmp(checkmark,'off')
+    %                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx-Data.Graph.segnoAll));
+    %
+    %                 else
+    %                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{1}-Data.Graph.segnoAll));
+    %                     u = min(u+1,length(Data.Graph.segInfo.idx_end{1}));
+    %                     u = Data.Graph.segInfo.idx_end{1}(u);
+    %                 end
+    %             else
+    %                 u = Data.Graph.segInfo.unverifiedIdx(1);
+    %             end
+    %             Data.Graph.segnoAll = u;
+    %         elseif Data.Graph.segInfo.V == 3
+    %             if isfield(Data.Graph,'segno3')
+    %                 if strcmp(checkmark,'off')
+    %                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx3-Data.Graph.segno3));
+    %                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx3));
+    %                     u = Data.Graph.segInfo.unverifiedIdx3(u);
+    %                 else
+    %                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{2}-Data.Graph.segno3));
+    %                     u = min(u+1,length(Data.Graph.segInfo.idx_end{2}));
+    %                     u = Data.Graph.segInfo.idx_end{2}(u);
+    %                 end
+    %             else
+    %                 u = Data.Graph.segInfo.unverifiedIdx3(1);
+    %             end
+    %             Data.Graph.segno3 = u;
+    %         elseif Data.Graph.segInfo.V == 5
+    %             if isfield(Data.Graph,'segno5')
+    %                 if strcmp(checkmark,'off')
+    %                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx5-Data.Graph.segno5));
+    %                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx5));
+    %                     u = Data.Graph.segInfo.unverifiedIdx5(u);
+    %                 else
+    %                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{3}-Data.Graph.segno5));
+    %                     u = min(u+1,length(Data.Graph.segInfo.idx_end{3}));
+    %                     u = Data.Graph.segInfo.idx_end{3}(u);
+    %                 end
+    %             else
+    %                 u = Data.Graph.segInfo.unverifiedIdx5(1);
+    %             end
+    %             Data.Graph.segno5 = u;
+    %         elseif Data.Graph.segInfo.V == 10
+    %             if isfield(Data.Graph,'segno10')
+    %                 if strcmp(checkmark,'off')
+    %                     [~,u] = min(abs(Data.Graph.segInfo.unverifiedIdx10-Data.Graph.segno10));
+    %                     u = min(u+1,length(Data.Graph.segInfo.unverifiedIdx10));
+    %                     u = Data.Graph.segInfo.unverifiedIdx10(u);
+    %                 else
+    %                     [~,u] = min(abs(Data.Graph.segInfo.idx_end{4}-Data.Graph.segno10));
+    %                     u = min(u+1,length(Data.Graph.segInfo.idx_end{4}));
+    %                     u = Data.Graph.segInfo.idx_end{4}(u);
+    %                 end
+    %             else
+    %                 u = Data.Graph.segInfo.unverifiedIdx10(1);
+    %             end
+    %             Data.Graph.segno10 = u;
+    %         end
+    %
+    %     else
+    %         if isfield(Data.Graph,'segnoVAll')
+    %             u = Data.Graph.segnoVAll;
+    %             u = min(u+1,length(Data.Graph.segInfo.segLen));
+    %             Data.Graph.segnoVAll = u;
+    %         else
+    %             u = 1;
+    %             Data.Graph.segnoVAll = u;
+    %         end
+    %     end
     Data.Graph.segno = u;
     endNodes = Data.Graph.segInfo.segEndNodes(Data.Graph.segno,:);
     seg_nodes = unique([find(Data.Graph.segInfo.nodeSegN == Data.Graph.segno);endNodes(:)]);
@@ -4156,14 +4203,14 @@ elseif isfield(Data.Graph,'segInfo')
     u1 = Data.Graph.segInfo.segEndNodes(Data.Graph.segno,1);
     u2 = Data.Graph.segInfo.segEndNodes(Data.Graph.segno,2);
     idx1 = find((Data.Graph.segInfo.segEndNodes(:,1) == u1) | (Data.Graph.segInfo.segEndNodes(:,2) == u1));
-    idx2 = find((Data.Graph.segInfo.segEndNodes(:,1) == u2) | (Data.Graph.segInfo.segEndNodes(:,2) == u2));  
-%     idx = setdiff([idx1;idx2],Data.Graph.segno); 
+    idx2 = find((Data.Graph.segInfo.segEndNodes(:,1) == u2) | (Data.Graph.segInfo.segEndNodes(:,2) == u2));
+    %     idx = setdiff([idx1;idx2],Data.Graph.segno);
     all_nodes = [];
     for u = 1:length(idx1)
-        all_nodes = [all_nodes; find(Data.Graph.segInfo.nodeSegN == idx1(u))];        
+        all_nodes = [all_nodes; find(Data.Graph.segInfo.nodeSegN == idx1(u))];
     end
     for u = 1:length(idx2)
-        all_nodes = [all_nodes; find(Data.Graph.segInfo.nodeSegN == idx2(u))];  
+        all_nodes = [all_nodes; find(Data.Graph.segInfo.nodeSegN == idx2(u))];
     end
     
     % Current segment dimensions
@@ -4175,12 +4222,12 @@ elseif isfield(Data.Graph,'segInfo')
     Ymax = max(Data.Graph.nodes(seg_nodes,2));
     
     % Connected segment dimensions
-%     Zmin = min(Data.Graph.nodes(all_nodes,3));
-%     Zmax = max(Data.Graph.nodes(all_nodes,3));
-%     Xmin = min(Data.Graph.nodes(all_nodes,1));
-%     Xmax = max(Data.Graph.nodes(all_nodes,1));
-%     Ymin = min(Data.Graph.nodes(all_nodes,2));
-%     Ymax = max(Data.Graph.nodes(all_nodes,2));
+    %     Zmin = min(Data.Graph.nodes(all_nodes,3));
+    %     Zmax = max(Data.Graph.nodes(all_nodes,3));
+    %     Xmin = min(Data.Graph.nodes(all_nodes,1));
+    %     Xmax = max(Data.Graph.nodes(all_nodes,1));
+    %     Ymin = min(Data.Graph.nodes(all_nodes,2));
+    %     Ymax = max(Data.Graph.nodes(all_nodes,2));
     
     %
     
@@ -4193,13 +4240,13 @@ elseif isfield(Data.Graph,'segInfo')
     set(handles.edit_ZMIP,'String',num2str(max(round(Zmax-Zmin+20),1)));
     
     
-%     mean_x = round(max(mean(Data.Graph.nodes(seg_nodes,1)),1));
-%     mean_y = round(max(mean(Data.Graph.nodes(seg_nodes,2)),1));
-%     mean_z = round(max(mean(Data.Graph.nodes(seg_nodes,3)),1));
-%     set(handles.edit_XcenterZoom,'String',num2str(max(mean_x-round(XMIP/2),1)));
-%     set(handles.edit_YcenterZoom,'String',num2str(max(mean_y-round(YMIP/2),1)));
-%     set(handles.edit_Zstartframe,'String',num2str(max(mean_z-round(ZMIP/2),1)));
-%     Data.Graph.verifiedNodes(seg_nodes) = 3;
+    %     mean_x = round(max(mean(Data.Graph.nodes(seg_nodes,1)),1));
+    %     mean_y = round(max(mean(Data.Graph.nodes(seg_nodes,2)),1));
+    %     mean_z = round(max(mean(Data.Graph.nodes(seg_nodes,3)),1));
+    %     set(handles.edit_XcenterZoom,'String',num2str(max(mean_x-round(XMIP/2),1)));
+    %     set(handles.edit_YcenterZoom,'String',num2str(max(mean_y-round(YMIP/2),1)));
+    %     set(handles.edit_Zstartframe,'String',num2str(max(mean_z-round(ZMIP/2),1)));
+    %     Data.Graph.verifiedNodes(seg_nodes) = 3;
     draw(hObject, eventdata, handles);
 end
 
@@ -4567,7 +4614,7 @@ function verification_updateBranchInfo_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Data
 
-if isfield(Data.Graph,'verifiedSegments')
+% if isfield(Data.Graph,'verifiedSegments')
     h = waitbar(0,'Please wait... loading the data');
     nSeg = size(Data.Graph.segInfo.segEndNodes,1);
     idx3 = [];            A_idx3 = [];
@@ -4690,7 +4737,7 @@ if isfield(Data.Graph,'verifiedSegments')
         Data.Graph.segInfo.segmentsUnverifiedGrpOrder = segmentsUnverifiedGrpOrder;
     end
     close(h);
-end
+% end
 
 
 % --- Executes on button press in pushbutton_deleteSegment.
@@ -5561,3 +5608,9 @@ function AllSegments_nBG3_Callback(hObject, eventdata, handles)
 % hObject    handle to AllSegments_nBG3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if strcmp(get(handles.AllSegments_nBG3,'checked'),'on')
+    set(handles.AllSegments_nBG3,'checked','off');
+else
+    set(handles.AllSegments_nBG3,'checked','on');
+end
+
