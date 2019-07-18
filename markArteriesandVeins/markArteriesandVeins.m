@@ -22,7 +22,7 @@ function varargout = markArteriesandVeins(varargin)
 
 % Edit the above text to modify the response to help markArteriesandVeins
 
-% Last Modified by GUIDE v2.5 28-May-2019 12:04:47
+% Last Modified by GUIDE v2.5 18-Jul-2019 12:32:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -299,8 +299,8 @@ global mAR
 Zstartframe = min(max(str2double(get(handles.edit_zStartFrame,'String')),1),Sz);
 Zendframe = min(max(str2double(get(handles.edit_zEndFrame,'String')),1),Sz);
 
-Xstartframe = min(max(str2double(get(handles.edit_xStartFrame,'String')),1),Sx);
-Xendframe = min(max(str2double(get(handles.edit_xEndFrame,'String')),1),Sx);
+Xstartframe = min(max(str2double(get(handles.edit_xStartFrame,'String')),1),Sx)
+Xendframe = min(max(str2double(get(handles.edit_xEndFrame,'String')),1),Sx)
 
 Ystartframe = min(max(str2double(get(handles.edit_yStartFrame,'String')),1),Sy);
 Yendframe = min(max(str2double(get(handles.edit_yEndFrame,'String')),1),Sy);
@@ -311,39 +311,61 @@ axes(handles.axes1)
 
 I_h = imagesc(img);
 colormap('gray')
+axis image;
+axis on
+
 xlim([Xstartframe Xendframe]);
 ylim([Ystartframe Yendframe]);
 
-axis image;
-axis on
 
 if get(handles.radiobutton_displayGraph,'Value')
     
     nodes = mAR.Graph.nodes;
     edges = mAR.Graph.edges;
-            
-    lst = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
-        nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
-        nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe );
     
-    hold on
-    
-    plot(mAR.Graph.nodes(lst,1),mAR.Graph.nodes(lst,2),'g.');
+    if get(handles.radiobutton_showCapillary,'value')
+        lst = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
+            nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
+            nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe );
+        
+        hold on
+        
+        plot(mAR.Graph.nodes(lst,1),mAR.Graph.nodes(lst,2),'g.');
+        hold off
+        
+%         lst = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
+%             nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
+%             nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe & ...
+%              mAR.Graph.nodeType == 4);
+%         
+%         hold on
+%         
+%         plot(mAR.Graph.nodes(lst,1),mAR.Graph.nodes(lst,2),'c.');
+%         hold off
+    end
     
     if isfield(mAR.Graph,'nodeType')
-        lstArtery = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
-            nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
-            nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe & ...
-            mAR.Graph.nodeType == 1);
+        if get(handles.radiobutton_showArtery,'value')
+            lstArtery = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
+                nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
+                nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe & ...
+                mAR.Graph.nodeType == 1);
+            
+            hold on
+            plot(mAR.Graph.nodes(lstArtery,1),mAR.Graph.nodes(lstArtery,2),'r.');
+            hold off
+        end
         
-        plot(mAR.Graph.nodes(lstArtery,1),mAR.Graph.nodes(lstArtery,2),'r.');
-        
-        lstVein = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
-            nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
-            nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe & ...
-            mAR.Graph.nodeType == 3);
-        
-        plot(mAR.Graph.nodes(lstVein,1),mAR.Graph.nodes(lstVein,2),'b.');
+        if get(handles.radiobutton_showVein,'value')
+            lstVein = find(nodes(:,1)>=Xstartframe & nodes(:,1)<=Xendframe & ...
+                nodes(:,2)>=Ystartframe & nodes(:,2)<=Yendframe & ...
+                nodes(:,3)>=Zstartframe & nodes(:,3)<=Zendframe & ...
+                mAR.Graph.nodeType == 3);
+            
+            hold on
+            plot(mAR.Graph.nodes(lstVein,1),mAR.Graph.nodes(lstVein,2),'b.');
+            hold off
+        end
     end
     
 %     if 0
@@ -356,10 +378,10 @@ if get(handles.radiobutton_displayGraph,'Value')
 %         lst2 = lst( find(nB(lst)>2) );
 %         plot(mAR.Graph.nodes(lst2,1),mAR.Graph.nodes(lst2,2),'mo');
 %     end
-    hold off
+%     hold off
 end
 
-axis off
+% axis off
 
 set(I_h, 'ButtonDownFcn', {@axes_ButtonDown, handles});
 
@@ -416,6 +438,30 @@ seg_node = idx(min_idx);
 % idx_seg = find(Data.Graph.segInfo.segEndNodes(:,1) == seg_node | Data.Graph.segInfo.segEndNodes(:,2) == seg_node);
 selected_segment = mAR.Graph.segInfo.nodeSegN(seg_node);
 
+% Find all the connected segmenst which have diameter greater than 10um
+segments = selected_segment;
+processed_segmnets = [];
+while ~isempty(segments)
+    current_segment = segments(end);
+    segEndNodes = mAR.Graph.segInfo.segEndNodes(current_segment,:);
+    processed_segmnets = unique([processed_segmnets; current_segment]);
+    endSegments = [];
+    for vv=1:length(segEndNodes)
+        endSegments = [endSegments ; find((mAR.Graph.segInfo.segEndNodes(:,1) == segEndNodes(vv)) | (mAR.Graph.segInfo.segEndNodes(:,2) == segEndNodes(vv)))];
+    end
+    for vv = 1:length(endSegments)
+        segnodes = find(mAR.Graph.segInfo.nodeSegN == endSegments(vv));
+        medianDiam = median(mAR.Graph.diam(segnodes));
+        if medianDiam > 6
+            segments = [segments; endSegments(vv)];
+        end
+    end
+    segments = setdiff(segments,processed_segmnets); 
+end
+
+
+
+
 if ~isfield(mAR.Graph.segInfo,'segType')
     mAR.Graph.segInfo.segType = 2*ones(size(mAR.Graph.segInfo.segLen));    
 end
@@ -429,29 +475,57 @@ if ~isfield(mAR.Graph,'edgeType')
     mAR.Graph.edgeType = 2*ones(size(mAR.Graph.edges,1),1);    
 end
 
-seg_nodes = find(mAR.Graph.segInfo.nodeSegN == selected_segment);
-seg_edges = find(mAR.Graph.segInfo.edgeSegN == selected_segment);
+seg_nodes = [];
+seg_edges = [];
+for vv = 1:length(processed_segmnets)
+    seg_nodes = [seg_nodes; find(mAR.Graph.segInfo.nodeSegN == processed_segmnets(vv))];
+    seg_edges = [seg_edges; find(mAR.Graph.segInfo.edgeSegN == processed_segmnets(vv))];
+end
 if get(handles.radiobutton_markArtery,'value')
     if mAR.Graph.segInfo.segType(selected_segment) ~= 1
-        mAR.Graph.segInfo.segType(selected_segment) = 1;
+        mAR.Graph.segInfo.segType(processed_segmnets) = 1;
         mAR.Graph.nodeType(seg_nodes) = 1;
         mAR.Graph.edgeType(seg_edges) = 1;
     else
-        mAR.Graph.segInfo.segType(selected_segment) = 2;
+        mAR.Graph.segInfo.segType(processed_segmnets) = 2;
         mAR.Graph.nodeType(seg_nodes) = 2;
         mAR.Graph.edgeType(seg_edges) = 2;
     end
 elseif get(handles.radiobutton_markVein,'value')
     if mAR.Graph.segInfo.segType(selected_segment) ~= 3
-        mAR.Graph.segInfo.segType(selected_segment) = 3;
+        mAR.Graph.segInfo.segType(processed_segmnets) = 3;
         mAR.Graph.nodeType(seg_nodes) = 3;
         mAR.Graph.edgeType(seg_edges) = 3;
     else
-        mAR.Graph.segInfo.segType(selected_segment) = 2;
+        mAR.Graph.segInfo.segType(processed_segmnets) = 2;
         mAR.Graph.nodeType(seg_nodes) = 2;
         mAR.Graph.edgeType(seg_edges) = 2;
     end
 end
+
+% seg_nodes = find(mAR.Graph.segInfo.nodeSegN == selected_segment);
+% seg_edges = find(mAR.Graph.segInfo.edgeSegN == selected_segment);
+% if get(handles.radiobutton_markArtery,'value')
+%     if mAR.Graph.segInfo.segType(selected_segment) ~= 1
+%         mAR.Graph.segInfo.segType(selected_segment) = 1;
+%         mAR.Graph.nodeType(seg_nodes) = 1;
+%         mAR.Graph.edgeType(seg_edges) = 1;
+%     else
+%         mAR.Graph.segInfo.segType(selected_segment) = 2;
+%         mAR.Graph.nodeType(seg_nodes) = 2;
+%         mAR.Graph.edgeType(seg_edges) = 2;
+%     end
+% elseif get(handles.radiobutton_markVein,'value')
+%     if mAR.Graph.segInfo.segType(selected_segment) ~= 3
+%         mAR.Graph.segInfo.segType(selected_segment) = 3;
+%         mAR.Graph.nodeType(seg_nodes) = 3;
+%         mAR.Graph.edgeType(seg_edges) = 3;
+%     else
+%         mAR.Graph.segInfo.segType(selected_segment) = 2;
+%         mAR.Graph.nodeType(seg_nodes) = 2;
+%         mAR.Graph.edgeType(seg_edges) = 2;
+%     end
+% end
 
 draw(hObject, eventdata, handles)
     
@@ -465,4 +539,83 @@ function menu_getSegInfo_Callback(hObject, eventdata, handles)
 global mAR
 
 mAR.Graph.segInfo = nodeGrps_vesSegment(mAR.Graph.nodes,mAR.Graph.edges);
+
+
+% --- Executes on button press in radiobutton_showCapillary.
+function radiobutton_showCapillary_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_showCapillary (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_showCapillary
+draw(hObject, eventdata, handles)
+
+% --- Executes on button press in radiobutton_showArtery.
+function radiobutton_showArtery_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_showArtery (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_showArtery
+draw(hObject, eventdata, handles)
+
+% --- Executes on button press in radiobutton_showVein.
+function radiobutton_showVein_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton_showVein (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton_showVein
+draw(hObject, eventdata, handles)
+
+
+% --------------------------------------------------------------------
+function menu_loadDiam_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_loadDiam (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+global mAR
+
+[filename,pathname] = uigetfile('*.mat','Please select the Diameter Info');
+temp = load([pathname filename]);
+fn = fieldnames(temp);
+if isfield(mAR,'Graph')
+    mAR.Graph.diam = temp.(fn{1});
+else
+    h = msgbox('Please load Graph Data before loading diameter data');
+    uiwait(h)
+end
+
+
+% --------------------------------------------------------------------
+function menu_loadNodeType_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_loadNodeType (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+global mAR
+
+[filename,pathname] = uigetfile('*.mat','Please select the Diameter Info');
+temp = load([pathname filename]);
+fn = fieldnames(temp);
+if isfield(mAR,'Graph')
+    mAR.Graph.nodeType = temp.(fn{1});
+else
+    h = msgbox('Please load Graph Data before loading diameter data');
+    uiwait(h)
+end
+
+
+% --------------------------------------------------------------------
+function menu_saveResults_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_saveResults (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+global mAR
+
+[FileName,PathName] = uiputfile('*.mat');
+Graph = mAR.Graph;
+save([PathName FileName],'Graph');
 
