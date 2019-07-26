@@ -22,7 +22,7 @@ function varargout = markArteriesandVeins(varargin)
 
 % Edit the above text to modify the response to help markArteriesandVeins
 
-% Last Modified by GUIDE v2.5 18-Jul-2019 12:32:31
+% Last Modified by GUIDE v2.5 22-Jul-2019 12:01:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -89,41 +89,45 @@ function menuLoadData_Callback(hObject, eventdata, handles)
 global mAR
 
 [filename,pathname] = uigetfile({'*.mat;*.tiff;*.tif'},'Please select the Angiogram Data');
-h = waitbar(0,'Please wait... loading the data');
-[~,~,ext] = fileparts(filename);
 
-if strcmp(ext,'.mat')
-    temp = load([pathname filename]);
-    fn = fieldnames(temp);
-    mAR.angio = temp.(fn{1});
-elseif  strcmp(ext,'.tiff') || strcmp(ext,'.tif')
-    info = imfinfo([pathname filename]);
-    for u = 1:length(info)
-        if u == 1
-            temp = imread([pathname filename],1);
-            angio = zeros([length(info) size(temp)]);
-            angio(u,:,:) = temp;
-        else
-            angio(u,:,:) = imread([pathname filename],u);
+if ~(filename == 0)
+    
+    h = waitbar(0,'Please wait... loading the data');
+    [~,~,ext] = fileparts(filename);
+    
+    if strcmp(ext,'.mat')
+        temp = load([pathname filename]);
+        fn = fieldnames(temp);
+        mAR.angio = temp.(fn{1});
+    elseif  strcmp(ext,'.tiff') || strcmp(ext,'.tif')
+        info = imfinfo([pathname filename]);
+        for u = 1:length(info)
+            if u == 1
+                temp = imread([pathname filename],1);
+                angio = zeros([length(info) size(temp)]);
+                angio(u,:,:) = temp;
+            else
+                angio(u,:,:) = imread([pathname filename],u);
+            end
         end
+        mAR.angio = angio;
     end
-    mAR.angio = angio;
+    
+    [z,x,y] = size(mAR.angio);
+    
+    set(handles.edit_zStartFrame,'String',num2str(1));
+    set(handles.edit_zEndFrame,'String',num2str(z));
+    
+    set(handles.edit_xStartFrame,'String',num2str(1));
+    set(handles.edit_xEndFrame,'String',num2str(x));
+    
+    set(handles.edit_yStartFrame,'String',num2str(1));
+    set(handles.edit_yEndFrame,'String',num2str(y));
+    
+    close(h)
+    
+    draw(hObject, eventdata, handles)
 end
-
-[z,x,y] = size(mAR.angio);
-
-set(handles.edit_zStartFrame,'String',num2str(1));
-set(handles.edit_zEndFrame,'String',num2str(z));
-
-set(handles.edit_xStartFrame,'String',num2str(1));
-set(handles.edit_xEndFrame,'String',num2str(x));
-
-set(handles.edit_yStartFrame,'String',num2str(1));
-set(handles.edit_yEndFrame,'String',num2str(y));
-
-close(h)
-
-draw(hObject, eventdata, handles)
 
 function edit_zStartFrame_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_zStartFrame (see GCBO)
@@ -282,9 +286,41 @@ function loadGraphData_Callback(hObject, eventdata, handles)
 
 global mAR
 
-[filename,pathname] = uigetfile('*.mat','Please select the Angiogram Data');
-load([pathname filename]);
-mAR.Graph = Graph;
+[filename,pathname] = uigetfile('*.mat','Please select the Graph Data');
+if ~(filename == 0)
+    temp = load([pathname filename]);
+    fn = fieldnames(temp);
+    if ~strcmp(fn{1},'Graph')
+        h = msgbox('Data you selected does not have Graph information');
+        uiwait(h)
+        return
+    end 
+    Graph = temp.(fn{1});
+    if ~isfield(Graph,'nodes')
+        h = msgbox('Node informaton does not exist in the Graph structure');
+        uiwait(h)
+        return
+    end
+    if ~isfield(Graph,'edges')
+        h = msgbox('Edge informaton does not exist in the Graph structure');
+        uiwait(h)
+        return
+    end
+    if ~isfield(Graph,'diam')
+        h = msgbox('Diameter informaton does not exist in the Graph structure, Please Load the Graph structure with diameter information');
+        uiwait(h)
+        return
+    end
+    if ~isfield(Graph,'segInfo')
+        answer = questdlg('Graph does not have segment information. Please press Yes to calculate segment information automatically or press No or Cancel to load the Graph with segment information');
+        if strcmp(answer,'Yes')
+            Graph.segInfo = nodeGrps_vesSegment(Graph.nodes,Graph.edges);
+        else
+            return
+        end
+    end
+    mAR.Graph = Graph;
+end
 
 
 function draw(hObject, eventdata, handles)
@@ -531,14 +567,14 @@ draw(hObject, eventdata, handles)
     
 
 
-% --------------------------------------------------------------------
-function menu_getSegInfo_Callback(hObject, eventdata, handles)
-% hObject    handle to menu_getSegInfo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global mAR
-
-mAR.Graph.segInfo = nodeGrps_vesSegment(mAR.Graph.nodes,mAR.Graph.edges);
+% % --------------------------------------------------------------------
+% function menu_getSegInfo_Callback(hObject, eventdata, handles)
+% % hObject    handle to menu_getSegInfo (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    structure with handles and user data (see GUIDATA)
+% global mAR
+% 
+% mAR.Graph.segInfo = nodeGrps_vesSegment(mAR.Graph.nodes,mAR.Graph.edges);
 
 
 % --- Executes on button press in radiobutton_showCapillary.
@@ -569,43 +605,6 @@ function radiobutton_showVein_Callback(hObject, eventdata, handles)
 draw(hObject, eventdata, handles)
 
 
-% --------------------------------------------------------------------
-function menu_loadDiam_Callback(hObject, eventdata, handles)
-% hObject    handle to menu_loadDiam (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-global mAR
-
-[filename,pathname] = uigetfile('*.mat','Please select the Diameter Info');
-temp = load([pathname filename]);
-fn = fieldnames(temp);
-if isfield(mAR,'Graph')
-    mAR.Graph.diam = temp.(fn{1});
-else
-    h = msgbox('Please load Graph Data before loading diameter data');
-    uiwait(h)
-end
-
-
-% --------------------------------------------------------------------
-function menu_loadNodeType_Callback(hObject, eventdata, handles)
-% hObject    handle to menu_loadNodeType (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-global mAR
-
-[filename,pathname] = uigetfile('*.mat','Please select the Diameter Info');
-temp = load([pathname filename]);
-fn = fieldnames(temp);
-if isfield(mAR,'Graph')
-    mAR.Graph.nodeType = temp.(fn{1});
-else
-    h = msgbox('Please load Graph Data before loading diameter data');
-    uiwait(h)
-end
-
 
 % --------------------------------------------------------------------
 function menu_saveResults_Callback(hObject, eventdata, handles)
@@ -618,4 +617,3 @@ global mAR
 [FileName,PathName] = uiputfile('*.mat');
 Graph = mAR.Graph;
 save([PathName FileName],'Graph');
-
