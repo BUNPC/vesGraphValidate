@@ -1,4 +1,4 @@
-function nodeDiam = GetDiam_graph( angio,nodePos, nodeEdges, Ithresh, Hvox )
+function Graph = getNodeDiameter(angio,Graph,Ithresh)
 % This function calculates the diameter for each node position. 
 % 
 %   Example: nodeDiam = GetDiam_graph( angio,nodePos, nodeEdges, Ithresh, Hvox )
@@ -10,7 +10,7 @@ function nodeDiam = GetDiam_graph( angio,nodePos, nodeEdges, Ithresh, Hvox )
 %   Output: nodeDiam - Diameter at each node.
 %   
 %   This is modified GetDiam function from imView3d
-%   Modified by Sreekanth Kura - skura@bu.edu
+
 
 
 
@@ -34,6 +34,9 @@ function nodeDiam = GetDiam_graph( angio,nodePos, nodeEdges, Ithresh, Hvox )
 % end
 % reEstimated = 1;
 
+nodePos = Graph.nodes;
+nodeEdges = Graph.edges;
+Hvox = Graph.Hvox;
 
 minDiam = 2;
 maxDiam = 90;
@@ -181,5 +184,5 @@ end
 % if length(im.nodeDiamEst)>nNodes,
 %     im.nodeDiamEst(nNodes+1:end) = [];
 % end;
-
+Graph.diam = nodeDiam;
 close(hwait)
